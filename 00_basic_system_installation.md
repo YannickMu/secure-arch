@@ -227,7 +227,27 @@ Generate your image by re-installing `linux` package and making sure the hooks w
 
 	pacman -S linux
 
- You should have `arch-linux.efi` within your `/efi/EFI/Linux/`
+### If you want to have a keyfile on an usb-stick too
+ **Your usb partition has to be formatted with ext2, else I don't know if it works**
+ #### Generate a Keyfile
+ ```sh
+dd if=/dev/urandom of=/mnt/keyfile bs=512 count=1
+ ```
+ #### Add the keyfile to lukspartition
+ ```sh
+cryptsetup luksAddKey --new-keyfile /mnt/keyfile {Lukspartition}
+ ```
+
+ #### Edit /etc/dracut.conf.d/cmdline.conf
+ ```sh
+kernel_cmdline="rd.luks.key={Lukspartition-UUID}=/keyfile:UUID={USB-partition-UUID} rd.luks.options=keyfile-timeout={seconds to wait for keyfile} rd.luks.uuid=luks-{Lukspartition-UUID} rd.lvm.lv=vg/root root=/dev/mapper/vg-root rootfstype=ext4 rootflags=rw,relatime"
+ ```
+
+Generate your image by re-installing `linux` package and making sure the hooks work properly:
+
+	pacman -S linux
+
+You should have `arch-linux.efi` within your `/efi/EFI/Linux/`
 
  Now you only have to add UEFI boot entry and create an order of booting:
 
